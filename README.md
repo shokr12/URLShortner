@@ -1,42 +1,52 @@
-# URL Shortener
+# Shortify | Modern URL Shortener
 
-**Developed a highly scalable and performant URL Shortener service, capable of handling high-throughput redirection with sub-millisecond latency, by implementing a cache-aside architecture using Redis, persistent storage with PostgreSQL, and offloading click analytics to asynchronous background Go workers.**
+**Shortify** is a high-performance, full-stack URL shortening service. It features a scalable Go backend with a cache-aside architecture and an architectural, editorial-style Next.js dashboard for digital curators.
 
-## 🚀 Features
+---
 
-- **Blazing Fast Redirects**: Uses Redis as a caching layer to achieve sub-millisecond redirect times.
-- **Persistent Storage**: Uses PostgreSQL for robust and reliable storage of URL mappings and analytics.
-- **Asynchronous Analytics**: Click tracking is offloaded to a background worker to ensure redirection latency is not impacted.
-- **Custom Keys**: Users can specify custom short URLs.
-- **Graceful Shutdown**: Ensures all in-flight requests and background jobs complete before shutting down.
+## 🚀 Key Features
+
+### Backend (Performance & Scalability)
+- **Sub-Millisecond Redirects**: Cache-aside architecture using Redis for near-instant link resolution.
+- **Persistent Reliability**: PostgreSQL storage for long-term data integrity.
+- **Asynchronous Analytics**: Click tracking offloaded to background Go workers to ensure minimal redirect latency.
+- **Custom Keys**: Support for personalized short keys.
+- **Graceful Shutdown**: Reliable cleanup of in-flight requests and background jobs.
+
+### Frontend (Editorial Experience)
+- **Precision Dashboard**: A "Digital Architect" inspired interface with tonal layering and glassmorphism.
+- **Link Management**: Advanced data grid for viewing, copying, and deleting assets.
+- **Performance Tracking**: Real-time analytics charts showing engagement trends.
+- **Modern Tech**: Built with Next.js 14, Tailwind CSS, and Framer Motion for premium animations.
 
 ---
 
 ## 🛠 Tech Stack
 
-- **Go (Golang)**: Core programming language.
+### Backend
+- **Go (Golang)**: Core logic and high-concurrency handling.
 - **Gin**: High-performance HTTP web framework.
-- **PostgreSQL**: Relational database (`jackc/pgx/v5` driver).
-- **Redis**: In-memory data store for caching and queues (`redis/go-redis/v9`).
-- **godotenv**: Environment variable management.
+- **PostgreSQL**: Primary transactional database.
+- **Redis**: In-memory caching and real-time click tracking.
+
+### Frontend
+- **Next.js 14**: React framework with App Router.
+- **Tailwind CSS**: Architectural styling and layout.
+- **Lucide React**: Premium iconography.
+- **Recharts**: Data visualization for performance metrics.
 
 ---
 
 ## 📦 Project Structure
 
 ```text
-├── cmd/
-│   ├── main.go            # Application entry point
-│   └── .env               # Environment configuration
-├── config/
-│   ├── config.go          # Configuration loading and DB/Redis initialization
-│   └── migrate.go         # Auto-migration scripts
-├── internal/
-│   ├── handler/           # HTTP controllers and routing (Gin)
-│   ├── model/             # Data structures and entities
-│   ├── repo/              # Database and Redis interaction layers
-│   ├── service/           # Business logic
-│   └── worker/            # Background worker for async tasks
+├── cmd/               # Go Application Entry (main.go, .env)
+├── config/            # DB/Redis Initialization & Config
+├── internal/          # Domain Logic (Repo, Service, Handler, Worker)
+├── frontend/          # Next.js Dashboard
+│   ├── src/app/       # Routing and UI Components
+│   └── tailwind.config.ts # Design System Configuration
+└── README.md          # Project Documentation
 ```
 
 ---
@@ -44,102 +54,67 @@
 ## 🚦 Getting Started
 
 ### Prerequisites
-
-Ensure you have the following installed:
 - [Go](https://go.dev/dl/) (v1.20+)
+- [Node.js](https://nodejs.org/) (v18+)
 - [PostgreSQL](https://www.postgresql.org/download/)
-- [Redis](https://redis.io/download)
+- [Redis](https://redis.io/download) (or WSL/Docker)
 
-### Installation
+### 1. Backend Setup
+```bash
+# 1. Install dependencies
+go mod download
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/yourusername/url-shortener.git
-   cd url-shortener
-   ```
+# 2. Configure .env in /cmd
+# Default: localhost:8080, DB User: postgres, DB Name: UrlShortner
 
-2. **Install dependencies:**
-   ```bash
-   go mod download
-   ```
+# 3. Start the server
+cd cmd
+go run main.go
+```
 
-3. **Configure Environment Variables:**
-   Create a `.env` file in the `cmd/` directory (or use the one provided) and configure your database and Redis connections:
-   ```env
-   DB_USER=postgres
-   DB_PASS=yourpassword
-   DB_NAME=UrlShortner
-   DB_HOST=localhost
-   DB_PORT=5432
+### 2. Frontend Setup
+```bash
+# 1. Enter directory
+cd frontend
 
-   REDIS_HOST=localhost
-   REDIS_PORT=6379
-   REDIS_PASS=
-   REDIS_DB=0
+# 2. Install dependencies
+npm install
 
-   SERVER_ADDR=:8080
-   BASE_URL=http://localhost:8080
-   ```
-
-4. **Run the application:**
-   ```bash
-   cd cmd
-   go run main.go
-   ```
-
-*(Note: The application will automatically create the required `url` table in PostgreSQL on startup).*
+# 3. Start development server
+npm run dev
+```
+Visit `http://localhost:3000` to access the dashboard.
 
 ---
 
-## 📡 API Endpoints
+## 📡 API Reference
 
-### 1. Shorten a URL
-Creates a new short URL.
-
-- **URL**: `/shorten`
-- **Method**: `POST`
-- **Body** (JSON):
-  ```json
-  {
-      "original_url": "https://www.verylongurl.com/example/path/here",
-      "custom_key": "my-link" // Optional
-  }
-  ```
-- **Success Response**: `201 Created`
-  ```json
-  {
-      "short_key": "my-link",
-      "short_url": "http://localhost:8080/my-link"
-  }
-  ```
-
-### 2. Redirect
-Redirects to the original URL and increments the click count asynchronously.
-
-- **URL**: `/:shortKey`
-- **Method**: `GET`
-- **Success Response**: `302 Found` (Redirects to original URL)
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/shorten` | Create a new short URL |
+| `GET` | `/:shortKey` | Redirect to original URL (Async analytics) |
+| `GET` | `/links` | List all digital assets |
+| `GET` | `/stats` | Global dashboard summary |
+| `DELETE`| `/links/:key` | Remove an asset |
+| `GET` | `/analytics/:key` | Detailed performance data |
 
 ---
 
-## ⚙️ Architecture Deep Dive
+## ⚙️ Architecture: Cache-Aside & Async Workers
 
-### Read Path Optimization (Cache-Aside Pattern)
-When a user visits a short link, the `repo.GetURLByShortKey` method first checks **Redis**. 
-- **Cache Hit**: Returns the URL immediately.
-- **Cache Miss**: Queries **PostgreSQL**, retrives the URL, and updates the Redis cache for subsequent requests.
+Shortify follows the **Cache-Aside Pattern**:
+1. Check **Redis** for the short link.
+2. If **Cache Hit**, redirect immediately.
+3. If **Cache Miss**, query **PostgreSQL**, update the cache, and redirect.
 
-### Write Path & Asynchronous Analytics
-When a short link is visited, updating the `click_count` synchronously would slow down the user's redirect. Instead, the handler pushes the `shortKey` to a Go channel. A background `ClickWorker` processes this channel, incrementing the counters in both Postgres and Redis without blocking the HTTP response.
+**Asynchronous Workflows**:
+To maintain high performance, the redirect handler doesn't wait for database updates. It pushes click data to a Go channel, which is then processed by a background **ClickWorker** that increments counters in both Postgres and Redis without blocking the user.
 
 ---
 
 ## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome!
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+Contributions are welcome! Please feel free to open issues or pull requests.
+1. Fork the repo.
+2. Create your branch (`feature/AmazingFeature`).
+3. Commit your changes.
+4. Open a PR.
