@@ -19,6 +19,9 @@ type UrlService interface {
 	GetOriginalURL(ctx context.Context, shortKey string) (string, error)
 	UpdateURL(ctx context.Context, shortKey string, newURL string, ttl time.Duration) error
 	GenerateRandomKey(length int) string
+	GetAllURLs(ctx context.Context) ([]model.URL, error)
+	GetStats(ctx context.Context) (map[string]interface{}, error)
+	DeleteURL(ctx context.Context, shortKey string) error
 }
 
 type urlService struct {
@@ -81,4 +84,16 @@ func (u urlService) UpdateURL(ctx context.Context, shortKey string, newURL strin
 		return err
 	}
 	return u.cacheRepo.SetUrl(ctx, shortKey, newURL, ttl)
+}
+
+func (u urlService) GetAllURLs(ctx context.Context) ([]model.URL, error) {
+	return u.repo.GetAllURLs(ctx)
+}
+
+func (u urlService) GetStats(ctx context.Context) (map[string]interface{}, error) {
+	return u.repo.GetStats(ctx)
+}
+
+func (u urlService) DeleteURL(ctx context.Context, shortKey string) error {
+	return u.repo.DeleteURL(shortKey, ctx)
 }

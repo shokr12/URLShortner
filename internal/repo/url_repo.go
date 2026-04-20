@@ -61,3 +61,45 @@ func (r *UrlRepo) UpdateURL(shortKey string, newURL string, ctx context.Context)
 	}
 	return nil
 }
+
+func (r *UrlRepo) GetAllURLs(ctx context.Context) ([]model.URL, error) {
+	query := "SELECT url, short_url, click_count FROM url ORDER BY created_at DESC"
+	rows, err := r.pgconn.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var urls []model.URL
+	for rows.Next() {
+		var u model.URL
+		if err := rows.Scan(&u.OriginalURL, &u.ShortURL, &u.ClickCount); err != nil {
+			return nil, err
+		}
+		urls = append(urls, u)
+	}
+	return urls, nil
+}
+
+func (r *UrlRepo) GetStats(ctx context.Context) (map[string]interface{}, error) {
+	var totalURLs int
+	var totalClicks int
+	err := r.pgconn.QueryRow(ctx, "SELECT COUNT(*), COALESCE(SUM(click_count), 0) FROM url").Scan(&totalURLs, &totalClicks)
+	if err != nil {
+		return nil, err
+	}
+
+	return map[string]interface{}{
+		"total_urls":   totalURLs,
+		"total_clicks": totalClicks,
+	}, nil
+}
+
+func (r *UrlRepo) DeleteURL(shortKey string, ctx context.Context) error {
+	query := "DELETE FROM url WHERE short_url = $1"
+	_, err := r.pgconn.Exec(ctx, query, shortKey)
+	if err != nil {
+		return err
+	}
+	return r.rdb.Del(ctx, "URL:"+shortKey, "clicks:"+shortKey).Err()
+}
