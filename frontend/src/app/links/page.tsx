@@ -9,7 +9,7 @@ export default function LinkManagement() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://localhost:8080/links")
+    fetch("url-shortner-neon-omega.vercel.app/links")
       .then(res => res.json())
       .then(data => {
         setLinks(data || []);

@@ -38,9 +38,11 @@ func main() {
 
 	rdbClient, err := config.InitRedis(cfg)
 	if err != nil {
-		log.Fatalf("failed to connect to redis: %v", err)
+		log.Printf("Warning: failed to connect to redis: %v", err)
 	}
-	defer rdbClient.Close()
+	if rdbClient != nil {
+		defer rdbClient.Close()
+	}
 
 	// 3. Initialize Repositories
 	pgRepo := repo.NewUrlRepo(pgConn, rdbClient)

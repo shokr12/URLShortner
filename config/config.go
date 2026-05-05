@@ -35,7 +35,7 @@ type RedisConfig struct {
 
 func Load() (*Config, error) {
 	return &Config{
-		BaseURL:    getEnv("BASE_URL", "http://localhost:8080"),
+		BaseURL:    getEnv("BASE_URL", "url-shortner-neon-omega.vercel.app"),
 		ServerAddr: getEnv("SERVER_ADDR", ":8080"),
 		DefaultTTL: 24 * time.Hour,
 		DB: DBConfig{
@@ -63,11 +63,12 @@ func InitRedis(cfg *Config) (*redis.Client, error) {
 		DB:       0,
 	})
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
 	if err := rdb.Ping(ctx).Err(); err != nil {
-		return nil, fmt.Errorf("redis ping failed at %s: %w", addr, err)
+		fmt.Printf("Warning: Redis ping failed at %s: %v. Proceeding without Redis.\n", addr, err)
+		return nil, nil // Return nil client to indicate Redis is unavailable
 	}
 
 	return rdb, nil

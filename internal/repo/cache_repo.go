@@ -22,21 +22,33 @@ func NewCacheRepo(rdb *redis.Client) CacheRepo {
 }
 
 func (c *cacheRepo) SetUrl(ctx context.Context,key string, value string, ttl time.Duration) error {
+	if c.rdb == nil {
+		return nil
+	}
 	ctx =context.Background()
 	return c.rdb.Set(ctx,"URL:"+key,value,ttl).Err()
 }
 
 func (c *cacheRepo) GetUrl(ctx context.Context,key string) (string, error) {
+	if c.rdb == nil {
+		return "", nil
+	}
 	ctx =context.Background()
 	return c.rdb.Get(ctx, "URL:"+key).Result()
 }
 
 func (c *cacheRepo) GetAndDeleteUrl(ctx context.Context,key string) error {
+	if c.rdb == nil {
+		return nil
+	}
 	ctx =context.Background()
 	return c.rdb.GetDel(ctx, "URL:"+key).Err()
 }
 
 func (c *cacheRepo) IncrementUrl(ctx context.Context,key string) error {
+	if c.rdb == nil {
+		return nil
+	}
 	ctx =context.Background()
 	return c.rdb.Incr(ctx, "URL:"+key).Err()
 }

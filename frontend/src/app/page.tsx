@@ -10,7 +10,7 @@ export default function Dashboard() {
   const [shortenedUrl, setShortenedUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("http://localhost:8080/stats")
+    fetch("url-shortner-neon-omega.vercel.app")
       .then(res => res.json())
       .then(data => setStats(data))
       .catch(err => console.error("Stats fetch error:", err));

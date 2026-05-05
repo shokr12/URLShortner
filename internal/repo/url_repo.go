@@ -24,16 +24,18 @@ func (r *UrlRepo) CreateURL(url *model.URL, ctx context.Context) error {
 }
 
 func (r *UrlRepo) GetURLByShortKey(shortKey string, ctx context.Context) (string, error) {
-	// 1. Try to get from Redis (Cache Hit) — key matches CacheRepo.SetUrl prefix
-	val, err := r.rdb.Get(ctx, "URL:"+shortKey).Result()
-	if err == nil {
-		return val, nil
+	// 1. Try to get from Redis (Cache Hit)
+	if r.rdb != nil {
+		val, err := r.rdb.Get(ctx, "URL:"+shortKey).Result()
+		if err == nil {
+			return val, nil
+		}
 	}
 
 	// 2. If not in Redis, get from Database (Cache Miss)
 	var originalURL string
 	query := "SELECT url FROM url WHERE short_url = $1"
-	err = r.pgconn.QueryRow(ctx, query, shortKey).Scan(&originalURL)
+	err := r.pgconn.QueryRow(ctx, query, shortKey).Scan(&originalURL)
 	if err != nil {
 		return "", err
 	}
@@ -49,7 +51,10 @@ func (r *UrlRepo) IncrementClickCount(shortKey string, ctx context.Context) erro
 	}
 
 	// Increment the click count in Redis
-	return r.rdb.Incr(ctx, "clicks:"+shortKey).Err()
+	if r.rdb != nil {
+		return r.rdb.Incr(ctx, "clicks:"+shortKey).Err()
+	}
+	return nil
 }
 
 
@@ -101,5 +106,8 @@ func (r *UrlRepo) DeleteURL(shortKey string, ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	return r.rdb.Del(ctx, "URL:"+shortKey, "clicks:"+shortKey).Err()
-}
+	if r.rdb != nil {
+		return r.rdb.Del(ctx, "URL:"+shortKey, "clicks:"+shortKey).Err()
+	}
+	return nil
+}
